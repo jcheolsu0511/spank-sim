@@ -1,0 +1,1821 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>사이버로 스팽하기</title>
+    <style>
+        @font-face {
+            font-family: 'Juache';
+            src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_one@1.0/BMJUA.woff') format('woff');
+            font-weight: normal;
+            font-display: swap;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+
+        body {
+            font-family: 'Juache', -apple-system, sans-serif;
+            background: #0a0a0f;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            color: #fff;
+            position: relative;
+        }
+
+        /* 애니메이션 배경 */
+        .bg-glow {
+            position: fixed;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .bg-glow .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.12;
+            animation: orbFloat 12s ease-in-out infinite alternate;
+        }
+        .bg-glow .orb:nth-child(1) {
+            width: 500px; height: 500px;
+            background: #ff3366;
+            top: -15%; left: -10%;
+            animation-delay: 0s;
+        }
+        .bg-glow .orb:nth-child(2) {
+            width: 400px; height: 400px;
+            background: #7c3aed;
+            bottom: -10%; right: -10%;
+            animation-delay: -4s;
+        }
+        .bg-glow .orb:nth-child(3) {
+            width: 300px; height: 300px;
+            background: #f59e0b;
+            top: 40%; left: 60%;
+            animation-delay: -8s;
+            opacity: 0.06;
+        }
+        @keyframes orbFloat {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(30px, -20px) scale(1.1); }
+        }
+
+        /* 노이즈 오버레이 */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* 상단 바 */
+        .top-bar {
+            width: 100%;
+            max-width: 900px;
+            padding: 18px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+        .logo-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .logo-icon {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, #ff3366, #ff6b9d);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            box-shadow: 0 4px 15px rgba(255,51,102,0.3);
+        }
+        .title {
+            font-size: 18px;
+            font-weight: normal;
+            color: #fff;
+            letter-spacing: -0.3px;
+        }
+        .title span {
+            color: rgba(255,255,255,0.35);
+            font-weight: 400;
+            margin-left: 6px;
+            font-size: 13px;
+        }
+
+        .top-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .stat-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+            padding: 6px 16px;
+            border-radius: 100px;
+            font-size: 13px;
+        }
+        .stat-pill .stat-label {
+            color: rgba(255,255,255,0.3);
+            font-weight: normal;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+        .stat-pill .stat-value {
+            color: #ff3366;
+            font-weight: normal;
+            font-size: 16px;
+            font-variant-numeric: tabular-nums;
+            min-width: 24px;
+            text-align: center;
+        }
+        .reset-btn {
+            width: 34px; height: 34px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 10px;
+            color: rgba(255,255,255,0.3);
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: inherit;
+        }
+        .reset-btn:hover {
+            background: rgba(255,51,102,0.1);
+            border-color: rgba(255,51,102,0.2);
+            color: #ff3366;
+            transform: rotate(90deg);
+        }
+
+        /* 메인 */
+        .main-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            width: 100%;
+            z-index: 5;
+        }
+
+        /* 리액션 */
+        .reaction-text {
+            position: absolute;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            font-weight: normal;
+            text-align: center;
+            pointer-events: none;
+            z-index: 50;
+            text-shadow: 0 2px 20px rgba(0,0,0,0.5);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* 하반신 */
+        .body-container {
+            position: relative;
+            height: calc(100vh - 200px);
+            max-height: 520px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .body-image {
+            height: 100%;
+            object-fit: contain;
+            pointer-events: none;
+            border-radius: 16px;
+            filter: drop-shadow(0 8px 40px rgba(0,0,0,0.6));
+            transform-origin: center center;
+        }
+        .red-canvas, .marks-canvas, .hit-area {
+            transform-origin: center center;
+        }
+
+        .red-canvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            mix-blend-mode: multiply;
+            z-index: 10;
+        }
+        .marks-canvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 20;
+        }
+        .hit-area {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 30;
+            cursor: none;
+        }
+
+        /* 이펙트 */
+        .hit-effect {
+            position: fixed;
+            pointer-events: none;
+            font-size: 40px;
+            animation: hitPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            z-index: 100;
+        }
+        @keyframes hitPop {
+            0% { transform: scale(0.2); opacity: 1; }
+            50% { transform: scale(1.3) translateY(-15px); opacity: 1; }
+            100% { transform: scale(0.5) translateY(-50px); opacity: 0; }
+        }
+
+        /* 화면 플래시 */
+        .screen-flash {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 90;
+            animation: flash 0.15s ease-out forwards;
+        }
+        @keyframes flash {
+            0% { background: rgba(255,51,102,0.08); }
+            100% { background: transparent; }
+        }
+
+        .shake { animation: shake 0.2s ease-in-out; }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px) rotate(-1deg); }
+            75% { transform: translateX(5px) rotate(1deg); }
+        }
+        .shake-hard { animation: shakeHard 0.3s ease-in-out; }
+        @keyframes shakeHard {
+            0%, 100% { transform: translate(0); }
+            20% { transform: translate(-8px, 2px) rotate(-2deg); }
+            40% { transform: translate(8px, -2px) rotate(2deg); }
+            60% { transform: translate(-6px, 1px) rotate(-1deg); }
+            80% { transform: translate(6px, -1px) rotate(1deg); }
+        }
+
+        /* 강도 게이지 - 이미지 왼쪽 세로 배치 */
+        .intensity-container {
+            position: absolute;
+            left: -40px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 40;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        .intensity-bar {
+            width: 3px;
+            height: 120px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        .intensity-fill {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 0%;
+            border-radius: 10px;
+            transition: height 0.4s ease, background 0.4s ease;
+            background: linear-gradient(0deg, #22d3ee, #4ade80);
+        }
+        .intensity-level {
+            font-size: 9px;
+            color: rgba(255,255,255,0.2);
+            font-weight: normal;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            transition: color 0.3s;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+        }
+
+        /* 하단 패들 바 */
+        .paddle-bar {
+            width: 100%;
+            padding: 0 20px 20px;
+            display: flex;
+            justify-content: center;
+            z-index: 10;
+        }
+        .paddle-dock {
+            display: flex;
+            gap: 6px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            padding: 8px;
+            border-radius: 20px;
+            overflow-x: auto;
+            max-width: calc(100vw - 16px);
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            scroll-behavior: smooth;
+        }
+        .paddle-dock::-webkit-scrollbar { display: none; }
+        .paddle-item { flex-shrink: 0; }
+        .paddle-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            padding: 10px 16px 8px;
+            border-radius: 14px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        .paddle-item:hover {
+            background: rgba(255,255,255,0.06);
+        }
+        .paddle-item.active {
+            background: rgba(255,51,102,0.12);
+        }
+        .paddle-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px; height: 4px;
+            background: #ff3366;
+            border-radius: 50%;
+        }
+        .paddle-icon {
+            font-size: 28px;
+            line-height: 1;
+            transition: transform 0.15s;
+        }
+        .paddle-item:hover .paddle-icon { transform: scale(1.15) translateY(-2px); }
+        .paddle-item.active .paddle-icon { transform: scale(1.1); }
+        .paddle-label {
+            font-size: 9px;
+            color: rgba(255,255,255,0.25);
+            font-weight: normal;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+        .paddle-item.active .paddle-label { color: rgba(255,51,102,0.7); }
+
+        /* 커서 */
+        .cursor-paddle {
+            position: fixed;
+            pointer-events: none;
+            font-size: 34px;
+            z-index: 9999;
+            transition: transform 0.06s;
+            filter: drop-shadow(0 6px 12px rgba(0,0,0,0.5));
+        }
+        .cursor-paddle.hitting {
+            transform: scale(1.6) rotate(20deg) !important;
+            filter: drop-shadow(0 6px 20px rgba(255,51,102,0.4));
+        }
+
+        /* 강도 레벨 패널 (오른쪽) */
+        .damage-panel {
+            position: absolute;
+            right: -160px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 40;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 14px;
+            padding: 10px 12px;
+            backdrop-filter: blur(15px);
+        }
+        .damage-title {
+            font-size: 9px;
+            color: rgba(255,255,255,0.3);
+            text-align: center;
+            margin-bottom: 4px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .damage-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 3px 6px;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+        .damage-row.active-level {
+            background: rgba(255,51,102,0.12);
+        }
+        .damage-num {
+            font-size: 11px;
+            color: rgba(255,255,255,0.2);
+            width: 18px;
+            text-align: center;
+            transition: color 0.3s;
+        }
+        .damage-row.active-level .damage-num {
+            color: #ff3366;
+        }
+        .damage-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+        .damage-desc {
+            font-size: 9px;
+            color: rgba(255,255,255,0.15);
+            transition: color 0.3s;
+            white-space: nowrap;
+        }
+        .damage-row.active-level .damage-desc {
+            color: rgba(255,255,255,0.5);
+        }
+        .damage-indicator {
+            text-align: center;
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        .damage-current {
+            font-size: 22px;
+            color: #ff3366;
+            line-height: 1;
+        }
+        .damage-label {
+            font-size: 8px;
+            color: rgba(255,255,255,0.2);
+            margin-top: 2px;
+            letter-spacing: 0.5px;
+        }
+
+        /* 애프터케어 모달 */
+        .aftercare-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+        .aftercare-overlay.show {
+            display: flex;
+        }
+        .aftercare-panel {
+            background: #15151f;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 24px;
+            padding: 32px 36px;
+            max-width: 420px;
+            width: 90%;
+            text-align: center;
+        }
+        .aftercare-title {
+            font-size: 20px;
+            color: #fff;
+            margin-bottom: 6px;
+        }
+        .aftercare-sub {
+            font-size: 12px;
+            color: rgba(255,255,255,0.35);
+            margin-bottom: 24px;
+        }
+        .aftercare-level {
+            font-size: 14px;
+            color: #ff3366;
+            margin-bottom: 20px;
+            padding: 8px 16px;
+            background: rgba(255,51,102,0.08);
+            border-radius: 100px;
+            display: inline-block;
+        }
+        .care-items {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+        .care-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 18px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .care-item:hover {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.1);
+        }
+        .care-item.applied {
+            background: rgba(74,222,128,0.08);
+            border-color: rgba(74,222,128,0.2);
+        }
+        .care-icon {
+            font-size: 28px;
+            flex-shrink: 0;
+        }
+        .care-info {
+            text-align: left;
+            flex: 1;
+        }
+        .care-name {
+            font-size: 13px;
+            color: #fff;
+            margin-bottom: 2px;
+        }
+        .care-desc {
+            font-size: 10px;
+            color: rgba(255,255,255,0.3);
+        }
+        .care-item.applied .care-desc {
+            color: rgba(74,222,128,0.6);
+        }
+        .care-check {
+            font-size: 16px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .care-item.applied .care-check {
+            opacity: 1;
+        }
+        .aftercare-close {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.5);
+            padding: 10px 28px;
+            border-radius: 100px;
+            font-size: 13px;
+            font-family: 'Juache', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .aftercare-close:hover {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+        }
+
+        /* 애프터케어 버튼 (상단 바) */
+        .care-btn {
+            width: 34px; height: 34px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 10px;
+            color: rgba(255,255,255,0.3);
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .care-btn:hover {
+            background: rgba(74,222,128,0.1);
+            border-color: rgba(74,222,128,0.2);
+            color: #4ade80;
+        }
+        .care-btn.has-damage {
+            animation: careGlow 2s ease-in-out infinite;
+        }
+        @keyframes careGlow {
+            0%, 100% { box-shadow: none; }
+            50% { box-shadow: 0 0 12px rgba(74,222,128,0.3); }
+        }
+
+        /* 사운드 버튼 */
+        .sound-btn {
+            width: 34px; height: 34px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 10px;
+            color: rgba(255,255,255,0.3);
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: inherit;
+        }
+        .sound-btn:hover {
+            background: rgba(124,58,237,0.1);
+            border-color: rgba(124,58,237,0.2);
+            color: #a78bfa;
+        }
+        .sound-btn.muted {
+            color: rgba(255,255,255,0.15);
+        }
+
+        /* 사운드 설정 팝오버 */
+        .sound-popover {
+            position: absolute;
+            top: 56px;
+            right: 8px;
+            background: #15151f;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px;
+            padding: 14px 16px;
+            min-width: 200px;
+            display: none;
+            z-index: 60;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+        .sound-popover.show { display: block; }
+        .sound-popover-title {
+            font-size: 11px;
+            color: rgba(255,255,255,0.4);
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .sound-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .sound-row:last-child { margin-bottom: 0; }
+        .sound-row label {
+            font-size: 12px;
+            color: rgba(255,255,255,0.6);
+        }
+        .sound-toggle-switch {
+            width: 36px;
+            height: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 100px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .sound-toggle-switch.on {
+            background: #7c3aed;
+        }
+        .sound-toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px; left: 2px;
+            width: 16px; height: 16px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform 0.2s;
+        }
+        .sound-toggle-switch.on::after {
+            transform: translateX(16px);
+        }
+        .volume-slider {
+            width: 100px;
+            accent-color: #7c3aed;
+        }
+
+        /* 연령 확인 게이트 */
+        .age-gate {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 500;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .age-gate.show { display: flex; }
+        .age-panel {
+            background: #15151f;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 24px;
+            padding: 36px 32px;
+            max-width: 440px;
+            width: 100%;
+            text-align: center;
+        }
+        .age-icon {
+            font-size: 48px;
+            margin-bottom: 14px;
+        }
+        .age-title {
+            font-size: 22px;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+        .age-desc {
+            font-size: 13px;
+            color: rgba(255,255,255,0.55);
+            line-height: 1.7;
+            margin-bottom: 20px;
+        }
+        .age-warn {
+            font-size: 11px;
+            color: rgba(255,180,180,0.6);
+            background: rgba(255,80,80,0.06);
+            border: 1px solid rgba(255,80,80,0.15);
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+        .age-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        .age-btn {
+            flex: 1;
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-family: 'Juache', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+        .age-btn.primary {
+            background: linear-gradient(135deg, #ff3366, #ff6b9d);
+            color: #fff;
+        }
+        .age-btn.primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(255,51,102,0.3);
+        }
+        .age-btn.secondary {
+            background: rgba(255,255,255,0.06);
+            color: rgba(255,255,255,0.5);
+            border-color: rgba(255,255,255,0.08);
+        }
+        .age-btn.secondary:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        /* 푸터 면책 */
+        .footer-disclaimer {
+            position: fixed;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            color: rgba(255,255,255,0.18);
+            text-align: center;
+            z-index: 5;
+            pointer-events: none;
+            white-space: nowrap;
+            padding: 0 8px;
+        }
+        @media (max-width: 600px) {
+            .footer-disclaimer {
+                display: none;
+            }
+            .sound-popover {
+                right: 4px;
+                top: 48px;
+                min-width: 180px;
+            }
+        }
+
+        /* 콤보 표시 */
+        .combo-text {
+            position: fixed;
+            pointer-events: none;
+            font-size: 16px;
+            font-weight: normal;
+            color: #ff3366;
+            z-index: 100;
+            animation: comboPop 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            text-shadow: 0 2px 10px rgba(255,51,102,0.4);
+        }
+        @keyframes comboPop {
+            0% { transform: scale(0.5) translateY(0); opacity: 0; }
+            30% { transform: scale(1.2) translateY(-10px); opacity: 1; }
+            100% { transform: scale(0.8) translateY(-40px); opacity: 0; }
+        }
+
+        /* 태블릿 */
+        @media (max-width: 900px) {
+            .damage-panel {
+                right: -130px;
+                padding: 8px 10px;
+            }
+            .damage-desc { display: none; }
+        }
+
+        /* 모바일 */
+        @media (max-width: 600px) {
+            .top-bar {
+                padding: 10px 14px;
+            }
+            .logo-icon {
+                width: 30px; height: 30px;
+                font-size: 14px;
+                border-radius: 8px;
+            }
+            .logo-group { gap: 8px; }
+            .title { font-size: 14px; }
+            .title span { display: none; }
+            .top-right { gap: 6px; }
+            .stat-pill {
+                padding: 4px 10px;
+                gap: 5px;
+            }
+            .stat-pill .stat-label { font-size: 9px; }
+            .stat-pill .stat-value { font-size: 13px; min-width: 18px; }
+            .reset-btn, .care-btn, .sound-btn {
+                width: 28px; height: 28px;
+                font-size: 13px;
+                border-radius: 8px;
+            }
+            .top-right { gap: 4px; }
+            .sound-popover {
+                padding: 10px 12px;
+            }
+            .sound-popover-title { font-size: 10px; margin-bottom: 8px; }
+            .sound-row { margin-bottom: 8px; }
+            .sound-row label { font-size: 11px; }
+            .volume-slider { width: 80px; }
+
+            .body-container {
+                height: calc(100vh - 160px);
+                max-height: none;
+            }
+            .body-image {
+                border-radius: 10px;
+            }
+            .reaction-text {
+                font-size: 18px;
+                top: 8px;
+            }
+
+            /* 게이지: 좌측 → 하단 가로 */
+            .intensity-container {
+                left: 50%;
+                top: auto;
+                bottom: -16px;
+                transform: translateX(-50%) translateY(0);
+                flex-direction: row;
+                gap: 6px;
+            }
+            .intensity-bar {
+                width: 100px;
+                height: 3px;
+            }
+            .intensity-fill {
+                position: absolute;
+                bottom: 0; left: 0;
+                width: 0%; height: 100%;
+                transition: width 0.4s ease, background 0.4s ease;
+            }
+            .intensity-level {
+                writing-mode: horizontal-tb;
+                text-orientation: initial;
+                font-size: 8px;
+            }
+
+            /* 강도 패널: 오른쪽 → 상단 가로 컴팩트 */
+            .damage-panel {
+                position: fixed;
+                right: 8px;
+                top: 58px;
+                left: auto;
+                bottom: auto;
+                transform: none;
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 2px;
+                padding: 6px 8px;
+                border-radius: 10px;
+                max-width: 200px;
+                justify-content: center;
+            }
+            .damage-title { display: none; }
+            .damage-row {
+                padding: 2px 4px;
+                gap: 4px;
+            }
+            .damage-num { font-size: 9px; width: auto; }
+            .damage-dot { width: 6px; height: 6px; }
+            .damage-desc { display: none; }
+            .damage-indicator {
+                width: 100%;
+                margin-top: 2px;
+                padding-top: 4px;
+            }
+            .damage-current { font-size: 16px; }
+            .damage-label { font-size: 7px; }
+
+            /* 패들 독 */
+            .paddle-bar { padding: 0 8px 10px; }
+            .paddle-dock {
+                gap: 2px;
+                padding: 6px;
+                border-radius: 16px;
+            }
+            .paddle-item {
+                padding: 8px 10px 6px;
+                gap: 2px;
+                border-radius: 10px;
+            }
+            .paddle-icon { font-size: 22px; }
+            .paddle-label { font-size: 8px; }
+            .paddle-item.active::after {
+                width: 3px; height: 3px;
+                bottom: 3px;
+            }
+
+            /* 커서 숨기기 (터치) */
+            .cursor-paddle { display: none !important; }
+
+            /* 이펙트 작게 */
+            .hit-effect { font-size: 30px; }
+            .combo-text { font-size: 13px !important; }
+
+            /* 애프터케어 모달 */
+            .aftercare-panel {
+                padding: 24px 20px;
+                border-radius: 20px;
+                width: 94%;
+                max-height: 85vh;
+                overflow-y: auto;
+            }
+            .aftercare-title { font-size: 17px; }
+            .aftercare-sub { font-size: 11px; margin-bottom: 16px; }
+            .aftercare-level { font-size: 12px; padding: 6px 14px; }
+            .care-items { gap: 6px; margin-bottom: 18px; }
+            .care-item {
+                padding: 12px 14px;
+                gap: 10px;
+                border-radius: 12px;
+            }
+            .care-icon { font-size: 24px; }
+            .care-name { font-size: 12px; }
+            .care-desc { font-size: 9px; }
+
+            /* 연령 게이트 모바일 */
+            .age-gate { padding: 14px; }
+            .age-panel {
+                padding: 26px 20px;
+                border-radius: 20px;
+            }
+            .age-icon { font-size: 40px; margin-bottom: 10px; }
+            .age-title { font-size: 18px; }
+            .age-desc { font-size: 12px; margin-bottom: 16px; }
+            .age-warn {
+                font-size: 10px;
+                padding: 10px 12px;
+                margin-bottom: 18px;
+            }
+            .age-btn { padding: 11px 14px; font-size: 12px; }
+        }
+
+        /* 아주 작은 화면 */
+        @media (max-width: 380px) {
+            .paddle-item { padding: 6px 8px 5px; }
+            .paddle-icon { font-size: 20px; }
+            .paddle-label { display: none; }
+            .stat-pill .stat-label { display: none; }
+            .damage-panel { max-width: 160px; }
+        }
+
+        /* 모바일 가로모드 */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .top-bar { padding: 6px 16px; }
+            .logo-icon { width: 26px; height: 26px; font-size: 12px; }
+            .title { font-size: 13px; }
+            .body-container { height: calc(100vh - 100px); }
+            .paddle-bar { padding: 0 10px 6px; }
+            .paddle-dock { padding: 4px; }
+            .paddle-item { padding: 6px 10px 4px; }
+            .paddle-icon { font-size: 20px; }
+            .paddle-label { display: none; }
+            .damage-panel { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <!-- 배경 -->
+    <div class="bg-glow">
+        <div class="orb"></div>
+        <div class="orb"></div>
+        <div class="orb"></div>
+    </div>
+
+    <!-- 상단 -->
+    <div class="top-bar">
+        <div class="logo-group">
+            <div class="logo-icon">🍑</div>
+            <div class="title">스팽 시뮬레이터 <span>v1.0</span></div>
+        </div>
+        <div class="top-right">
+            <div class="stat-pill">
+                <span class="stat-label">hits</span>
+                <span class="stat-value" id="hitCount">0</span>
+            </div>
+            <button class="care-btn" id="careBtn" onclick="openAftercare()" title="애프터케어">🩹</button>
+            <button class="sound-btn" id="soundBtn" onclick="toggleSoundPopover(event)" title="사운드">🔊</button>
+            <button class="reset-btn" onclick="resetAll()" title="리셋">↻</button>
+        </div>
+
+        <!-- 사운드 설정 팝오버 -->
+        <div class="sound-popover" id="soundPopover">
+            <div class="sound-popover-title">Sound</div>
+            <div class="sound-row">
+                <label>효과음</label>
+                <div class="sound-toggle-switch on" id="soundToggleSwitch" onclick="toggleSound()"></div>
+            </div>
+            <div class="sound-row">
+                <label>볼륨</label>
+                <input type="range" min="0" max="100" value="100" class="volume-slider" id="volumeSlider" oninput="setVolume(this.value)">
+            </div>
+        </div>
+    </div>
+
+    <!-- 메인 -->
+    <div class="main-area">
+        <div class="reaction-text" id="reactionText"></div>
+        <div class="body-container" id="bodyContainer">
+            <img src="sp.png" class="body-image" id="bodyImage" alt="">
+            <canvas class="red-canvas" id="redCanvas"></canvas>
+            <canvas class="marks-canvas" id="marksCanvas"></canvas>
+            <div class="hit-area" id="hitArea"></div>
+            <div class="intensity-container">
+                <div class="intensity-bar">
+                    <div class="intensity-fill" id="intensityFill"></div>
+                </div>
+                <div class="intensity-level" id="intensityLevel">ready</div>
+            </div>
+
+            <!-- 강도 레벨 패널 -->
+            <div class="damage-panel" id="damagePanel">
+                <div class="damage-title">Damage</div>
+                <div class="damage-row" data-level="1"><span class="damage-num">I</span><span class="damage-dot" style="background:rgba(255,200,200,0.5)"></span><span class="damage-desc">핑크빛</span></div>
+                <div class="damage-row" data-level="2"><span class="damage-num">II</span><span class="damage-dot" style="background:rgba(255,170,170,0.6)"></span><span class="damage-desc">연분홍</span></div>
+                <div class="damage-row" data-level="3"><span class="damage-num">III</span><span class="damage-dot" style="background:rgba(255,130,130,0.7)"></span><span class="damage-desc">분홍</span></div>
+                <div class="damage-row" data-level="4"><span class="damage-num">IV</span><span class="damage-dot" style="background:rgba(255,100,100,0.75)"></span><span class="damage-desc">진분홍</span></div>
+                <div class="damage-row" data-level="5"><span class="damage-num">V</span><span class="damage-dot" style="background:rgba(255,70,70,0.8)"></span><span class="damage-desc">연빨강</span></div>
+                <div class="damage-row" data-level="6"><span class="damage-num">VI</span><span class="damage-dot" style="background:rgba(240,50,50,0.85)"></span><span class="damage-desc">빨강</span></div>
+                <div class="damage-row" data-level="7"><span class="damage-num">VII</span><span class="damage-dot" style="background:rgba(220,30,30,0.88)"></span><span class="damage-desc">진빨강</span></div>
+                <div class="damage-row" data-level="8"><span class="damage-num">VIII</span><span class="damage-dot" style="background:rgba(200,20,20,0.9)"></span><span class="damage-desc">짙은빨강</span></div>
+                <div class="damage-row" data-level="9"><span class="damage-num">IX</span><span class="damage-dot" style="background:rgba(170,10,30,0.93)"></span><span class="damage-desc">거의멍</span></div>
+                <div class="damage-row" data-level="10"><span class="damage-num">X</span><span class="damage-dot" style="background:rgba(130,0,30,0.95)"></span><span class="damage-desc">멍투성이</span></div>
+                <div class="damage-indicator">
+                    <div class="damage-current" id="damageCurrent">-</div>
+                    <div class="damage-label">현재 단계</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 패들 독 -->
+    <div class="paddle-bar" id="paddleBar">
+        <div class="paddle-dock">
+            <div class="paddle-item active" data-paddle="hand" data-power="1" data-emoji="✋" onclick="selectPaddle(this)">
+                <div class="paddle-icon">✋</div>
+                <div class="paddle-label">핸드</div>
+            </div>
+            <div class="paddle-item" data-paddle="paddle" data-power="2.5" data-emoji="🏓" onclick="selectPaddle(this)">
+                <div class="paddle-icon">🏓</div>
+                <div class="paddle-label">패들</div>
+            </div>
+            <div class="paddle-item" data-paddle="whip" data-power="2.3" data-emoji="🪢" onclick="selectPaddle(this)">
+                <div class="paddle-icon">🪢</div>
+                <div class="paddle-label">휩</div>
+            </div>
+            <div class="paddle-item" data-paddle="cane" data-power="1.8" data-emoji="🥢" onclick="selectPaddle(this)">
+                <div class="paddle-icon">🥢</div>
+                <div class="paddle-label">케인</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 애프터케어 모달 -->
+    <div class="aftercare-overlay" id="aftercareOverlay" onclick="if(event.target===this)closeAftercare()">
+        <div class="aftercare-panel">
+            <div class="aftercare-title">애프터케어</div>
+            <div class="aftercare-sub">스팽 후 적절한 케어를 해주세요</div>
+            <div class="aftercare-level" id="aftercareLevel">현재 강도: -</div>
+            <div class="care-items">
+                <div class="care-item" onclick="applyCare(this, 'ice')">
+                    <div class="care-icon">🧊</div>
+                    <div class="care-info">
+                        <div class="care-name">냉찜질</div>
+                        <div class="care-desc">부기와 열감을 가라앉혀줍니다</div>
+                    </div>
+                    <div class="care-check">✅</div>
+                </div>
+                <div class="care-item" onclick="applyCare(this, 'ointment')">
+                    <div class="care-icon">🧴</div>
+                    <div class="care-info">
+                        <div class="care-name">연고 바르기</div>
+                        <div class="care-desc">피부 진정 및 회복을 도와줍니다</div>
+                    </div>
+                    <div class="care-check">✅</div>
+                </div>
+                <div class="care-item" onclick="applyCare(this, 'aloe')">
+                    <div class="care-icon">🌿</div>
+                    <div class="care-info">
+                        <div class="care-name">알로에 젤</div>
+                        <div class="care-desc">쿨링 효과로 피부를 진정시킵니다</div>
+                    </div>
+                    <div class="care-check">✅</div>
+                </div>
+                <div class="care-item" onclick="applyCare(this, 'massage')">
+                    <div class="care-icon">💆</div>
+                    <div class="care-info">
+                        <div class="care-name">부드러운 마사지</div>
+                        <div class="care-desc">혈액 순환을 도와 회복을 촉진합니다</div>
+                    </div>
+                    <div class="care-check">✅</div>
+                </div>
+                <div class="care-item" onclick="applyCare(this, 'rest')">
+                    <div class="care-icon">🛌</div>
+                    <div class="care-info">
+                        <div class="care-name">충분한 휴식</div>
+                        <div class="care-desc">피부가 자연 회복할 시간을 줍니다</div>
+                    </div>
+                    <div class="care-check">✅</div>
+                </div>
+            </div>
+            <button class="aftercare-close" onclick="closeAftercare()">닫기</button>
+        </div>
+    </div>
+
+    <!-- 연령 확인 게이트 -->
+    <div class="age-gate" id="ageGate">
+        <div class="age-panel">
+            <div class="age-icon">🔞</div>
+            <div class="age-title">성인 인증</div>
+            <div class="age-desc">
+                이 콘텐츠는 <b style="color:#ff6b9d">만 19세 이상</b>의<br>
+                성인을 위한 가상 시뮬레이션입니다.
+            </div>
+            <div class="age-warn">
+                ⚠️ 이 시뮬레이터는 픽션이며 실제 행위를 권장하지 않습니다.<br>
+                실제 상황에서는 반드시 <b>상호 합의</b>와 <b>안전 수칙</b>을 따라주세요.
+            </div>
+            <div class="age-buttons">
+                <button class="age-btn secondary" onclick="rejectAge()">나가기</button>
+                <button class="age-btn primary" onclick="confirmAge()">19세 이상입니다</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 푸터 면책 -->
+    <div class="footer-disclaimer">
+        가상 시뮬레이션 · 실제 상황에서는 합의와 안전이 우선입니다
+    </div>
+
+    <div class="cursor-paddle" id="cursorPaddle">✋</div>
+
+    <script>
+        const SAVE_KEY = 'spankSimState_v1';
+        const AGE_KEY = 'spankSimAgeConfirmed_v1';
+
+        let hitCount = 0;
+        let currentPaddle = { name: 'hand', power: 1, emoji: '✋' };
+        let marks = [];
+        let redSpots = [];
+        let comboCount = 0;
+        let lastHitTime = 0;
+        let totalDamage = 0;
+        let currentLevel = 0;
+        let soundEnabled = true;
+        let soundVolume = 1.0;
+
+        const levelNames = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
+        const levelDescs = ['', '핑크빛', '연분홍', '분홍', '진분홍', '연빨강', '빨강', '진빨강', '짙은빨강', '거의멍', '멍투성이'];
+        const levelThresholds = [0, 3, 8, 15, 24, 35, 48, 63, 80, 95, 110];
+
+        const bodyContainer = document.getElementById('bodyContainer');
+        const bodyImage = document.getElementById('bodyImage');
+        const hitArea = document.getElementById('hitArea');
+        const redCanvas = document.getElementById('redCanvas');
+        const marksCanvas = document.getElementById('marksCanvas');
+        const redCtx = redCanvas.getContext('2d');
+        const markCtx = marksCanvas.getContext('2d');
+        const hitCountEl = document.getElementById('hitCount');
+        const intensityFill = document.getElementById('intensityFill');
+        const intensityLevel = document.getElementById('intensityLevel');
+        const reactionText = document.getElementById('reactionText');
+        const cursorPaddle = document.getElementById('cursorPaddle');
+
+        bodyImage.onload = setupCanvases;
+        window.addEventListener('resize', setupCanvases);
+
+        function setupCanvases() {
+            const rect = bodyContainer.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            [redCanvas, marksCanvas].forEach(c => {
+                c.style.width = rect.width + 'px';
+                c.style.height = rect.height + 'px';
+                c.width = rect.width * dpr;
+                c.height = rect.height * dpr;
+                c.getContext('2d').scale(dpr, dpr);
+            });
+        }
+        setTimeout(setupCanvases, 100);
+
+        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        if (!isTouchDevice) {
+            document.body.style.cursor = 'none';
+            document.addEventListener('mousemove', (e) => {
+                cursorPaddle.style.left = (e.clientX - 17) + 'px';
+                cursorPaddle.style.top = (e.clientY - 17) + 'px';
+            });
+        } else {
+            cursorPaddle.style.display = 'none';
+        }
+
+        function selectPaddle(el) {
+            document.querySelectorAll('.paddle-item').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+            currentPaddle = {
+                name: el.dataset.paddle,
+                power: parseFloat(el.dataset.power),
+                emoji: el.dataset.emoji
+            };
+            cursorPaddle.textContent = currentPaddle.emoji;
+        }
+
+        function getLocalCoords(e) {
+            const imgRect = bodyImage.getBoundingClientRect();
+            const contRect = bodyContainer.getBoundingClientRect();
+            return {
+                x: e.clientX - contRect.left,
+                y: e.clientY - contRect.top,
+                nx: (e.clientX - imgRect.left) / imgRect.width,
+                ny: (e.clientY - imgRect.top) / imgRect.height
+            };
+        }
+
+        function isHitZone(nx, ny) {
+            if (ny >= 0.03 && ny < 0.48) {
+                const topW = 0.14;
+                const botW = 0.30;
+                const t = (ny - 0.03) / 0.45;
+                const halfW = topW + (botW - topW) * Math.min(t * 1.5, 1);
+                return nx > (0.5 - halfW) && nx < (0.5 + halfW);
+            }
+            if (ny >= 0.48 && ny < 0.60) {
+                const t = (ny - 0.48) / 0.12;
+                const halfW = 0.30 - t * 0.03;
+                const gap = t * 0.03;
+                return (nx > (0.5 - halfW) && nx < (0.5 - gap)) ||
+                       (nx > (0.5 + gap) && nx < (0.5 + halfW));
+            }
+            if (ny >= 0.60 && ny < 0.92) {
+                const t = (ny - 0.60) / 0.32;
+                const legW = 0.12 - t * 0.03;
+                const legGap = 0.04 + t * 0.02;
+                const lc = 0.5 - legGap - legW / 2;
+                const rc = 0.5 + legGap + legW / 2;
+                return (nx > lc - legW && nx < lc + legW) ||
+                       (nx > rc - legW && nx < rc + legW);
+            }
+            if (ny >= 0.92 && ny <= 0.97) {
+                return (nx > 0.22 && nx < 0.40) || (nx > 0.60 && nx < 0.78);
+            }
+            return false;
+        }
+
+        function spank(e) {
+            const coords = getLocalCoords(e);
+            if (!isHitZone(coords.nx, coords.ny)) return;
+
+            hitCount++;
+            hitCountEl.textContent = hitCount;
+
+            // 콤보
+            const now = Date.now();
+            if (now - lastHitTime < 600) {
+                comboCount++;
+                if (comboCount >= 3) showCombo(e.clientX, e.clientY, comboCount);
+            } else {
+                comboCount = 1;
+            }
+            lastHitTime = now;
+
+            const power = currentPaddle.power;
+
+            // 빨간 자국
+            const radius = 25 + power * 15;
+            redSpots.push({
+                x: coords.x, y: coords.y,
+                radius, time: now,
+                opacity: Math.min(0.5, 0.15 + power * 0.08)
+            });
+
+            drawMark(coords.x, coords.y, currentPaddle.name, power);
+            createHitEffect(e.clientX, e.clientY);
+
+            const shakeCls = power >= 2 ? 'shake-hard' : 'shake';
+            const shakeTargets = [bodyImage, redCanvas, marksCanvas, hitArea];
+            shakeTargets.forEach(el => {
+                el.classList.remove('shake', 'shake-hard');
+                void el.offsetWidth;
+                el.classList.add(shakeCls);
+            });
+
+            cursorPaddle.classList.add('hitting');
+            setTimeout(() => cursorPaddle.classList.remove('hitting'), 100);
+
+            totalDamage += power;
+            updateIntensity();
+            updateDamageLevel();
+            playHitSound(power);
+            saveState();
+        }
+
+        function showCombo(x, y, count) {
+            const el = document.createElement('div');
+            el.className = 'combo-text';
+            el.textContent = `${count}x COMBO!`;
+            el.style.left = (x + 20) + 'px';
+            el.style.top = (y - 30) + 'px';
+            el.style.fontSize = Math.min(14 + count * 2, 28) + 'px';
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 800);
+        }
+
+        function renderRedness() {
+            const rect = bodyContainer.getBoundingClientRect();
+            redCtx.clearRect(0, 0, rect.width, rect.height);
+            const now = Date.now();
+
+            redSpots = redSpots.filter(s => {
+                const age = now - s.time;
+                if (age > 15000) return false;
+                const fade = age > 5000 ? 1 - (age - 5000) / 10000 : 1;
+                const alpha = s.opacity * fade;
+                if (alpha <= 0.001) return false;
+
+                const grad = redCtx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.radius);
+                grad.addColorStop(0, `rgba(255, 30, 50, ${alpha})`);
+                grad.addColorStop(0.5, `rgba(255, 60, 70, ${alpha * 0.5})`);
+                grad.addColorStop(1, 'rgba(255, 80, 80, 0)');
+                redCtx.fillStyle = grad;
+                redCtx.beginPath();
+                redCtx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+                redCtx.fill();
+                return true;
+            });
+            requestAnimationFrame(renderRedness);
+        }
+
+        function drawMark(x, y, paddle, power) {
+            marks.push({
+                x, y, paddle, power,
+                time: Date.now(),
+                angle: (Math.random() - 0.5) * 30,
+                opacity: 0.4 + power * 0.1,
+                scale: 0.8 + power * 0.15
+            });
+        }
+
+        function renderMarks() {
+            const rect = bodyContainer.getBoundingClientRect();
+            markCtx.clearRect(0, 0, rect.width, rect.height);
+            const now = Date.now();
+
+            marks = marks.filter(m => {
+                const age = now - m.time;
+                if (age > 6000) return false;
+                const fade = age > 3000 ? 1 - (age - 3000) / 3000 : 1;
+                const alpha = m.opacity * fade;
+                if (alpha <= 0) return false;
+
+                markCtx.save();
+                markCtx.translate(m.x, m.y);
+                markCtx.rotate(m.angle * Math.PI / 180);
+                markCtx.scale(m.scale, m.scale);
+                markCtx.globalAlpha = alpha;
+
+                switch (m.paddle) {
+                    case 'hand': drawHandMark(markCtx, m.power); break;
+                    case 'catpaw': drawCatPawMark(markCtx, m.power); break;
+                    case 'slipper': drawSlipperMark(markCtx, m.power); break;
+                    case 'ruler': drawRulerMark(markCtx, m.power); break;
+                    case 'paddle': drawPaddleMark(markCtx, m.power); break;
+                    case 'cane': drawCaneMark(markCtx, m.power); break;
+                    case 'whip': drawWhipMark(markCtx, m.power); break;
+                }
+                markCtx.restore();
+                return true;
+            });
+            requestAnimationFrame(renderMarks);
+        }
+
+        function drawHandMark(c, p) {
+            c.fillStyle = `rgba(${200 + p * 55}, 50, 60, 0.5)`;
+            c.beginPath(); c.ellipse(0, 5, 14, 18, 0, 0, Math.PI * 2); c.fill();
+            [[-13,-12,3.5,9,-0.4],[-6,-20,3.2,10,-0.15],[2,-22,3.2,10.5,0],[10,-20,3,9.5,0.15],[16,-14,3,8,0.4]]
+            .forEach(f => { c.save(); c.translate(f[0],f[1]); c.rotate(f[4]); c.beginPath(); c.ellipse(0,0,f[2],f[3],0,0,Math.PI*2); c.fill(); c.restore(); });
+        }
+        function drawCatPawMark(c, p) {
+            c.fillStyle = `rgba(${200 + p * 55}, 70, 90, 0.45)`;
+            c.beginPath(); c.ellipse(0, 6, 11, 13, 0, 0, Math.PI * 2); c.fill();
+            [{x:-10,y:-9},{x:-3,y:-15},{x:5,y:-15},{x:12,y:-9}].forEach(t => { c.beginPath(); c.arc(t.x,t.y,5.5,0,Math.PI*2); c.fill(); });
+        }
+        function drawSlipperMark(c, p) {
+            c.fillStyle = `rgba(${210 + p * 45}, 45, 45, 0.4)`;
+            c.beginPath(); c.ellipse(0, 0, 12, 22, 0, 0, Math.PI * 2); c.fill();
+            c.strokeStyle = `rgba(${210 + p * 45}, 25, 25, 0.25)`; c.lineWidth = 1.5; c.stroke();
+        }
+        function drawRulerMark(c, p) {
+            c.fillStyle = `rgba(${220 + p * 35}, 35, 35, 0.45)`;
+            c.beginPath(); c.roundRect(-18, -3, 36, 6, 2); c.fill();
+        }
+        function drawPaddleMark(c, p) {
+            c.fillStyle = `rgba(${230 + p * 25}, 30, 30, 0.5)`;
+            c.beginPath(); c.arc(0, 0, 16, 0, Math.PI * 2); c.fill();
+            c.strokeStyle = `rgba(${230 + p * 25}, 15, 15, 0.25)`; c.lineWidth = 1; c.beginPath(); c.arc(0,0,10,0,Math.PI*2); c.stroke();
+        }
+        function drawCaneMark(c, p) {
+            // 얇고 긴 선
+            c.fillStyle = `rgba(${235 + p * 20}, 30, 50, 0.55)`;
+            c.beginPath(); c.roundRect(-24, -1.5, 48, 3, 1.5); c.fill();
+            c.strokeStyle = `rgba(${235 + p * 20}, 10, 30, 0.35)`;
+            c.lineWidth = 0.8;
+            c.beginPath(); c.roundRect(-24, -1.5, 48, 3, 1.5); c.stroke();
+        }
+        function drawWhipMark(c, p) {
+            // 휘어진 채찍 자국 (S자 곡선)
+            c.strokeStyle = `rgba(${230 + p * 25}, 25, 45, 0.6)`;
+            c.lineWidth = 2.2;
+            c.lineCap = 'round';
+            c.beginPath();
+            c.moveTo(-26, -3);
+            c.quadraticCurveTo(-8, 6, 8, -4);
+            c.quadraticCurveTo(20, -8, 28, -2);
+            c.stroke();
+            // 끝부분 작은 점
+            c.fillStyle = `rgba(${230 + p * 25}, 15, 30, 0.5)`;
+            c.beginPath(); c.arc(28, -2, 2.5, 0, Math.PI * 2); c.fill();
+        }
+        function drawBeltMark(c, p) {
+            // 굵은 직사각형
+            c.fillStyle = `rgba(${215 + p * 40}, 40, 50, 0.5)`;
+            c.beginPath(); c.roundRect(-26, -6, 52, 12, 3); c.fill();
+            c.strokeStyle = `rgba(${215 + p * 40}, 20, 30, 0.25)`;
+            c.lineWidth = 1;
+            c.beginPath(); c.roundRect(-26, -6, 52, 12, 3); c.stroke();
+        }
+        function drawBrushMark(c, p) {
+            // 둥근 사각형 + 빗살 텍스처
+            c.fillStyle = `rgba(${220 + p * 35}, 55, 65, 0.45)`;
+            c.beginPath(); c.roundRect(-12, -16, 24, 32, 6); c.fill();
+            c.fillStyle = `rgba(${220 + p * 35}, 25, 35, 0.3)`;
+            for (let dy = -10; dy <= 10; dy += 5) {
+                c.fillRect(-9, dy - 0.5, 18, 1);
+            }
+        }
+        function drawSpicyMark(c, p) {
+            // 빨간 글로우 + 별모양 발광
+            const grad = c.createRadialGradient(0, 0, 0, 0, 0, 24);
+            grad.addColorStop(0, `rgba(255, 100, 30, 0.85)`);
+            grad.addColorStop(0.4, `rgba(255, 30, 30, 0.55)`);
+            grad.addColorStop(1, `rgba(180, 0, 0, 0)`);
+            c.fillStyle = grad;
+            c.beginPath(); c.arc(0, 0, 24, 0, Math.PI * 2); c.fill();
+            // 화염/별빛 6방향
+            c.fillStyle = `rgba(255, 220, 60, 0.7)`;
+            for (let i = 0; i < 6; i++) {
+                const a = (i / 6) * Math.PI * 2;
+                c.save();
+                c.rotate(a);
+                c.beginPath();
+                c.ellipse(16, 0, 4, 1.6, 0, 0, Math.PI * 2);
+                c.fill();
+                c.restore();
+            }
+        }
+
+        function createHitEffect(x, y) {
+            const el = document.createElement('div');
+            el.className = 'hit-effect';
+            let pool;
+            if (currentPaddle.name === 'whip') pool = ['💢','✨','💥','〰️'];
+            else if (currentPaddle.name === 'cane') pool = ['💢','✨','💥'];
+            else if (currentPaddle.name === 'paddle') pool = ['💥','😣','💢','🔥'];
+            else if (hitCount > 40) pool = ['💢','😭','🔥','💥'];
+            else if (hitCount > 20) pool = ['💥','😣','⭐'];
+            else pool = ['💥','⭐','✨','😳'];
+            el.textContent = pool[Math.floor(Math.random() * pool.length)];
+            el.style.left = (x - 20 + Math.random() * 16 - 8) + 'px';
+            el.style.top = (y - 22) + 'px';
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 600);
+        }
+
+        // 강도별 랜덤 반응 멘트 풀
+        const reactionPools = {
+            ouch: ['아야! 😣', '으윽... 😖', '아얏!', '흠칫!', '어머... 😳', '아잉~ 😣', '음...! 😖', '응?! 😳'],
+            pain: ['으악!! 😖', '아파... 😣', '잠깐만요!', '흐엉ㅠㅠ', '악! 😖', '으...읏!', '제발... 😣', '그, 그만...'],
+            max:  ['그만해!! 😭🔥', '엉엉ㅠㅠ', '제발... 😭', '으아아!! 🔥', '아아악! 😭', '못 참겠어... 🔥', '살려줘... 😭', '히익ㅠㅠ 🔥']
+        };
+        let lastReaction = '';
+        function pickReaction(key) {
+            const pool = reactionPools[key];
+            if (!pool || !pool.length) return '';
+            const candidates = pool.filter(x => x !== lastReaction);
+            const pick = candidates.length
+                ? candidates[Math.floor(Math.random() * candidates.length)]
+                : pool[0];
+            lastReaction = pick;
+            return pick;
+        }
+
+        function updateIntensity() {
+            const pct = Math.min(100, (redSpots.length / 40) * 100);
+            const isMobile = window.innerWidth <= 600;
+            if (isMobile) {
+                intensityFill.style.width = pct + '%';
+                intensityFill.style.height = '100%';
+            } else {
+                intensityFill.style.height = pct + '%';
+                intensityFill.style.width = '100%';
+            }
+
+            if (pct < 20) {
+                intensityFill.style.background = 'linear-gradient(90deg, #22d3ee, #4ade80)';
+                reactionText.textContent = '';
+                lastReaction = '';
+                intensityLevel.textContent = 'mild';
+                intensityLevel.style.color = 'rgba(34,211,238,0.5)';
+            } else if (pct < 45) {
+                intensityFill.style.background = 'linear-gradient(90deg, #facc15, #fb923c)';
+                reactionText.textContent = pickReaction('ouch');
+                reactionText.style.color = 'rgba(250,204,21,0.7)';
+                intensityLevel.textContent = 'ouch';
+                intensityLevel.style.color = 'rgba(250,204,21,0.5)';
+            } else if (pct < 70) {
+                intensityFill.style.background = 'linear-gradient(90deg, #f97316, #ef4444)';
+                reactionText.textContent = pickReaction('pain');
+                reactionText.style.color = 'rgba(249,115,22,0.8)';
+                intensityLevel.textContent = 'pain';
+                intensityLevel.style.color = 'rgba(249,115,22,0.5)';
+            } else {
+                intensityFill.style.background = 'linear-gradient(90deg, #ef4444, #dc2626)';
+                reactionText.textContent = pickReaction('max');
+                reactionText.style.color = 'rgba(239,68,68,0.9)';
+                intensityLevel.textContent = 'max!!';
+                intensityLevel.style.color = 'rgba(239,68,68,0.7)';
+            }
+        }
+
+        // 사운드 파일 매핑 (도구별 src + 음량 보정 계수)
+        // vol: 도구별 원본 .wav 음압 차이 보정 (0~1, 1이 원본 그대로)
+        const soundFiles = {
+            hand:   { src: 'hand.wav',   vol: 1.00 },
+            whip:   { src: 'whip.wav',   vol: 0.45 },  // 보통 가장 시끄러움
+            paddle: { src: 'paddle.wav', vol: 0.35 },  // 묵직하고 큼
+            cane:   { src: 'cane.wav',   vol: 1.00 }   // 날카롭고 큼
+        };
+
+        // 프리로드
+        const audioCache = {};
+        Object.entries(soundFiles).forEach(([name, info]) => {
+            const a = new Audio(info.src);
+            a.preload = 'auto';
+            audioCache[name] = a;
+        });
+
+        function playHitSound(power) {
+            if (!soundEnabled || soundVolume <= 0) return;
+            const info = soundFiles[currentPaddle.name];
+            const cached = audioCache[currentPaddle.name];
+            if (!cached || !info) return;
+            try {
+                // 클론 → 멀티터치/연타 시 겹쳐서 재생
+                const audio = cached.cloneNode();
+                // 강도 영향 줄임 (0.85~1.0 범위) → 도구간 차이 최소화
+                const powerVol = Math.min(1, 0.78 + power * 0.08);
+                // 최종 볼륨 = 전역볼륨 × 강도보정 × 파일별보정
+                audio.volume = Math.max(0, Math.min(1, soundVolume * powerVol * info.vol));
+                audio.play().catch(() => {});
+            } catch (e) {}
+        }
+
+        // 강도 단계 업데이트
+        function updateDamageLevel() {
+            let level = 0;
+            for (let i = 10; i >= 1; i--) {
+                if (totalDamage >= levelThresholds[i]) { level = i; break; }
+            }
+            currentLevel = level;
+
+            // 패널 활성 표시
+            document.querySelectorAll('.damage-row').forEach(row => {
+                const rl = parseInt(row.dataset.level);
+                row.classList.toggle('active-level', rl === level);
+            });
+
+            document.getElementById('damageCurrent').textContent = level > 0 ? levelNames[level] : '-';
+
+            // 애프터케어 버튼 글로우
+            document.getElementById('careBtn').classList.toggle('has-damage', level >= 3);
+        }
+
+        // 애프터케어
+        function openAftercare() {
+            const overlay = document.getElementById('aftercareOverlay');
+            overlay.classList.add('show');
+            const lvl = currentLevel > 0 ? `${levelNames[currentLevel]} 단계 - ${levelDescs[currentLevel]}` : '데미지 없음';
+            document.getElementById('aftercareLevel').textContent = `현재 강도: ${lvl}`;
+
+            // 케어 아이템 초기화
+            document.querySelectorAll('.care-item').forEach(item => item.classList.remove('applied'));
+
+            // 커서 복원
+            cursorPaddle.style.display = 'none';
+            document.body.style.cursor = 'default';
+        }
+
+        function closeAftercare() {
+            document.getElementById('aftercareOverlay').classList.remove('show');
+            cursorPaddle.style.display = 'block';
+            document.body.style.cursor = 'none';
+        }
+
+        function applyCare(el, type) {
+            if (el.classList.contains('applied')) return;
+            el.classList.add('applied');
+
+            // 케어 효과: 데미지 감소
+            const healAmount = { ice: 15, ointment: 12, aloe: 10, massage: 8, rest: 20 };
+            const heal = healAmount[type] || 10;
+            totalDamage = Math.max(0, totalDamage - heal);
+
+            // 빨간 자국도 줄이기
+            const removeCount = Math.ceil(heal / 3);
+            for (let i = 0; i < removeCount && redSpots.length > 0; i++) {
+                redSpots.shift();
+            }
+            const markRemove = Math.ceil(heal / 4);
+            for (let i = 0; i < markRemove && marks.length > 0; i++) {
+                marks.shift();
+            }
+
+            updateDamageLevel();
+            updateIntensity();
+
+            // 업데이트 레벨 텍스트
+            const lvl = currentLevel > 0 ? `${levelNames[currentLevel]} 단계 - ${levelDescs[currentLevel]}` : '데미지 없음';
+            document.getElementById('aftercareLevel').textContent = `현재 강도: ${lvl}`;
+
+            el.querySelector('.care-desc').textContent = '적용 완료!';
+            saveState();
+        }
+
+        function resetAll() {
+            hitCount = 0; comboCount = 0; totalDamage = 0; currentLevel = 0;
+            hitCountEl.textContent = 0;
+            redSpots = []; marks = [];
+            intensityFill.style.height = '0%';
+            intensityFill.style.width = '0%';
+            reactionText.textContent = '';
+            intensityLevel.textContent = 'ready';
+            intensityLevel.style.color = 'rgba(255,255,255,0.2)';
+            document.getElementById('damageCurrent').textContent = '-';
+            document.querySelectorAll('.damage-row').forEach(r => r.classList.remove('active-level'));
+            document.getElementById('careBtn').classList.remove('has-damage');
+            saveState();
+        }
+
+        // ==== localStorage 저장/불러오기 ====
+        function saveState() {
+            try {
+                localStorage.setItem(SAVE_KEY, JSON.stringify({
+                    hitCount, totalDamage, currentLevel,
+                    soundEnabled, soundVolume,
+                    paddleName: currentPaddle.name
+                }));
+            } catch (e) {}
+        }
+        function loadState() {
+            try {
+                const raw = localStorage.getItem(SAVE_KEY);
+                if (!raw) return;
+                const s = JSON.parse(raw);
+                if (typeof s.hitCount === 'number') hitCount = s.hitCount;
+                if (typeof s.totalDamage === 'number') totalDamage = s.totalDamage;
+                if (typeof s.currentLevel === 'number') currentLevel = s.currentLevel;
+                if (typeof s.soundEnabled === 'boolean') soundEnabled = s.soundEnabled;
+                if (typeof s.soundVolume === 'number') soundVolume = s.soundVolume;
+                if (s.paddleName) {
+                    const el = document.querySelector(`.paddle-item[data-paddle="${s.paddleName}"]`);
+                    if (el) selectPaddle(el);
+                }
+                hitCountEl.textContent = hitCount;
+                updateDamageLevel();
+                // UI 동기화
+                const sw = document.getElementById('soundToggleSwitch');
+                const btn = document.getElementById('soundBtn');
+                if (soundEnabled) { sw.classList.add('on'); btn.classList.remove('muted'); btn.textContent='🔊'; }
+                else { sw.classList.remove('on'); btn.classList.add('muted'); btn.textContent='🔇'; }
+                document.getElementById('volumeSlider').value = Math.round(soundVolume * 100);
+            } catch (e) {}
+        }
+
+        // ==== 사운드 ====
+        function toggleSoundPopover(e) {
+            e.stopPropagation();
+            document.getElementById('soundPopover').classList.toggle('show');
+        }
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const sw = document.getElementById('soundToggleSwitch');
+            const btn = document.getElementById('soundBtn');
+            sw.classList.toggle('on', soundEnabled);
+            btn.classList.toggle('muted', !soundEnabled);
+            btn.textContent = soundEnabled ? '🔊' : '🔇';
+            saveState();
+        }
+        function setVolume(v) {
+            soundVolume = Math.max(0, Math.min(1, v / 100));
+            saveState();
+        }
+        document.addEventListener('click', (e) => {
+            const pop = document.getElementById('soundPopover');
+            const btn = document.getElementById('soundBtn');
+            if (!pop.contains(e.target) && e.target !== btn) {
+                pop.classList.remove('show');
+            }
+        });
+
+        // ==== 연령 게이트 ====
+        function checkAgeGate() {
+            if (!localStorage.getItem(AGE_KEY)) {
+                document.getElementById('ageGate').classList.add('show');
+            }
+        }
+        function confirmAge() {
+            try { localStorage.setItem(AGE_KEY, Date.now().toString()); } catch (e) {}
+            document.getElementById('ageGate').classList.remove('show');
+        }
+        function rejectAge() {
+            window.location.href = 'about:blank';
+        }
+
+        hitArea.addEventListener('click', spank);
+        hitArea.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            for (const t of e.changedTouches) {
+                spank({ clientX: t.clientX, clientY: t.clientY });
+            }
+        }, { passive: false });
+
+        [document.getElementById('paddleBar'), document.querySelector('.top-bar')].forEach((el, i) => {
+            el.addEventListener('mouseenter', () => {
+                cursorPaddle.style.display = 'none';
+                document.body.style.cursor = i === 0 ? 'pointer' : 'default';
+            });
+            el.addEventListener('mouseleave', () => {
+                cursorPaddle.style.display = 'block';
+                document.body.style.cursor = 'none';
+            });
+        });
+
+        renderRedness();
+        renderMarks();
+
+        // 초기화: 저장된 상태 불러오기 + 연령 게이트
+        loadState();
+        checkAgeGate();
+    </script>
+</body>
+</html>
